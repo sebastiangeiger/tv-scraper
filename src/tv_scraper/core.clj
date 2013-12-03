@@ -65,3 +65,39 @@
 
 (defn find-show-url [show-name]
   (get (first (search-results-for show-name)) :url))
+
+(defn split-by-newlines [array]
+  (let [split #(if (string? %) (clojure.string/split-lines %) [%])]
+    (remove #(and (string? %) (clojure.string/blank? %)) (mapcat split array))))
+
+(defn correct-first [pred [first-key first-value & remainder :as array]]
+    (if (pred first-key)
+      array
+      (concat (vector nil (cons first-key first-value)) remainder)))
+
+(defn split-map
+  ([pred coll] (split-map pred coll []))
+  ([pred [current & coll] array]
+   (let [[fitting remaining] (split-with #(not (pred %)) coll)]
+     (if (nil? current)
+       (apply hash-map (correct-first pred array))
+       (recur pred remaining (concat array [current] [fitting]))))))
+
+(defn convert-keys [f the-map]
+  (zipmap (map f (keys the-map)) (vals the-map)))
+
+(defn split-into-seasons [page-data season-regex]
+  (let [cleaned-up (-> page-data first :content split-by-newlines)
+        season-number #(keyword (last (re-matches season-regex %)))
+        season-headline? #(and (string? %) (re-matches season-regex %))
+        remove-meta-data #(into {} (for [[k v] % :when (not (nil? k))] [k v]))]
+    (convert-keys season-number (remove-meta-data (split-map season-headline? cleaned-up)))))
+
+(defn parse-seasons [page]
+  (-> page (select [:#eplist :pre]) split-into-seasons))
+
+(defn parse-show-page [url]
+  (let [extract-title #(-> % (select [:#header :h1]) first text)
+        page (-> url URL. html-resource)]
+    {:title (extract-title page)
+     :seasons (parse-seasons page)}))
