@@ -9,6 +9,7 @@
   (:use [clojure.string :only [replace lower-case] :rename {replace str-replace}])
   (:import java.net.URL)
   (:use tv-scraper.poor-mans-mechanize.form)
+  (:use tv-scraper.collection-helper)
   (:use net.cgrand.enlive-html))
 
 (defn interpret-search-results [html-content]
@@ -29,25 +30,6 @@
 (defn split-by-newlines [array]
   (let [split #(if (string? %) (clojure.string/split-lines %) [%])]
     (remove #(and (string? %) (clojure.string/blank? %)) (mapcat split array))))
-
-(defn correct-first [pred [first-key first-value & remainder :as array]]
-    (if (pred first-key)
-      array
-      (concat (vector nil (cons first-key first-value)) remainder)))
-
-(defn split-on
-  ([pred coll] (split-on pred coll []))
-  ([pred [current & coll] array]
-   (let [[fitting remaining] (split-with #(not (pred %)) coll)]
-     (if (nil? current)
-       (correct-first pred array)
-       (recur pred remaining (concat array [current] [fitting]))))))
-
-(defn split-map [pred coll]
-  (apply hash-map (split-on pred coll)))
-
-(defn convert-keys [f the-map]
-  (zipmap (map f (keys the-map)) (vals the-map)))
 
 (defn split-into-seasons [page-data extract-season]
   (let [cleaned-up (-> page-data first :content split-by-newlines)
