@@ -7,6 +7,7 @@
 
 (ns tv-scraper.epiguides
   (:use clojure.test)
+  (:use [clojure.string :only [replace lower-case] :rename {replace str-replace}])
   (:use net.cgrand.enlive-html)
   (:import java.net.URL)
   (:import java.net.URLEncoder))
@@ -75,26 +76,31 @@
       array
       (concat (vector nil (cons first-key first-value)) remainder)))
 
-(defn split-map
-  ([pred coll] (split-map pred coll []))
+(defn split-on
+  ([pred coll] (split-on pred coll []))
   ([pred [current & coll] array]
    (let [[fitting remaining] (split-with #(not (pred %)) coll)]
      (if (nil? current)
-       (apply hash-map (correct-first pred array))
+       (correct-first pred array)
        (recur pred remaining (concat array [current] [fitting]))))))
+
+(defn split-map [pred coll]
+  (apply hash-map (split-on pred coll)))
 
 (defn convert-keys [f the-map]
   (zipmap (map f (keys the-map)) (vals the-map)))
 
-(defn split-into-seasons [page-data season-regex]
+(defn split-into-seasons [page-data extract-season]
   (let [cleaned-up (-> page-data first :content split-by-newlines)
-        season-number #(keyword (last (re-matches season-regex %)))
-        season-headline? #(and (string? %) (re-matches season-regex %))
+        season-number #(-> % extract-season lower-case (str-replace " " "_") keyword)
+        season-headline? #(not (nil? (extract-season %)))
         remove-meta-data #(into {} (for [[k v] % :when (not (nil? k))] [k v]))]
     (convert-keys season-number (remove-meta-data (split-map season-headline? cleaned-up)))))
 
 (defn parse-seasons [page]
-  (-> page (select [:#eplist :pre]) split-into-seasons))
+  (-> page
+    (select [:#eplist :pre])
+    (split-into-seasons #(if (string? %) (last (or (re-matches #"^\s*•\s*Season (\d+)\s*$" %) (re-matches #"^(Other Episodes)$" %))) nil))))
 
 (defn parse-show-page [url]
   (let [extract-title #(-> % (select [:#header :h1]) first text)
