@@ -42,19 +42,23 @@
   {:pre [(string? string)]}
   (let [fragments (re-matches regex string)
         to-int #(Integer/parseInt %)]
-    {:episode (-> fragments (nth 3) to-int)
-     :season (-> fragments (nth 2) to-int)
-     :date (last fragments)
-     :title (-> links first :content first)}))
+    {(-> fragments (nth 3) to-int str keyword)
+     {;;:season (-> fragments (nth 2) to-int)
+      :date (last fragments)
+      :title (-> links first :content first)}}))
 
 (defn build-episodes [lines]
   (let [regex #"^(\d+)\s+(\d+)-(\d+)(\s+\d+)?\s+(\d{1,2}\/\w{3}\/\d{2})\s*$"]
-    (map #(build-episode regex %) (split-on #(and (string? %) (re-matches regex %)) lines))))
+    (apply merge (map #(build-episode regex %) (split-on #(and (string? %) (re-matches regex %)) lines)))))
+
+(defn split-into-episodes [seasons]
+  (into {} (for [[k v] seasons] [k {:episodes (build-episodes v)}])))
 
 (defn parse-seasons [page]
   (-> page
     (select [:#eplist :pre])
-    (split-into-seasons #(if (string? %) (last (or (re-matches #"^\s*•\s*Season (\d+)\s*$" %) (re-matches #"^(Other Episodes)$" %))) nil))))
+    (split-into-seasons #(if (string? %) (last (or (re-matches #"^\s*•\s*Season (\d+)\s*$" %) (re-matches #"^(Other Episodes)$" %))) nil))
+    split-into-episodes))
 
 (defn parse-show-page [url]
   (let [extract-title #(-> % (select [:#header :h1]) first text)
