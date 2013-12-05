@@ -36,7 +36,7 @@
         season-number #(-> % extract-season lower-case (str-replace " " "_") keyword)
         season-headline? #(not (nil? (extract-season %)))
         remove-meta-data #(into {} (for [[k v] % :when (not (nil? k))] [k v]))]
-    (convert-keys season-number (remove-meta-data (split-map season-headline? cleaned-up)))))
+    (dissoc (convert-keys season-number (remove-meta-data (split-map season-headline? cleaned-up))) :other_episodes)))
 
 (defn build-episode [regex [string links]]
   {:pre [(string? string)]}

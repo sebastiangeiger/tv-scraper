@@ -18,8 +18,9 @@
 ;;@network
 (deftest parsing-a-show-page
          (is (= (-> "http://epguides.com/Futurescape" parse-show-page :title) "Futurescape"))
-         (is (= (-> "http://epguides.com/Lost" parse-show-page :seasons keys set) #{:1 :2 :3 :4 :5 :6 :other_episodes}))
+         (is (= (-> "http://epguides.com/Lost" parse-show-page :seasons keys set) #{:1 :2 :3 :4 :5 :6}))
          (is (= (-> "http://epguides.com/Futurescape" parse-show-page :seasons :1 :episodes :6 :title) "How to Be a Superhuman"))
+         (is (= (-> "http://epguides.com/Lost" parse-show-page :seasons :2 :episodes :17 :title) "Lockdown"))
          )
 
 (deftest parsing-the-season-body
