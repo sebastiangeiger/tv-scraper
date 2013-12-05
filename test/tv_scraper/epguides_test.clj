@@ -4,20 +4,17 @@
             [clj-time.core :refer [date-time]]))
 
 
-;;@network
-(deftest find-a-show-url
+(deftest ^:google find-a-show-url
          (is (= (find-show-url "Sons of Anarchy") "http://epguides.com/SonsofAnarchy/"))
          (is (= (find-show-url "Hank 1965") "http://epguides.com/Hank_1965/"))
          (is (= (find-show-url "The Wire") "http://epguides.com/Wire/")))
 
-;; @network
-(deftest the-search-results-for-a-term
+(deftest ^:google the-search-results-for-a-term
          (is (= (search-results-for "Wire")
                 [{:title "The Wire" :url "http://epguides.com/Wire/"}
                  {:title "Wire in the Blood" :url "http://epguides.com/WireintheBlood/"}])))
 
-;;@network
-(deftest parsing-a-show-page
+(deftest ^:network parsing-a-show-page
          (is (= (-> "http://epguides.com/Futurescape" parse-show-page :title) "Futurescape"))
          (is (= (-> "http://epguides.com/Lost" parse-show-page :seasons keys set) #{:1 :2 :3 :4 :5 :6}))
          (is (= (-> "http://epguides.com/Futurescape" parse-show-page :seasons :1 :episodes :6 :title) "How to Be a Superhuman"))

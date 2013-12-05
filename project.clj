@@ -3,6 +3,9 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :main tv-scraper.core
+  :test-selectors {:default (complement :google)
+                   :google :google
+                   :all (constantly true)}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [enlive "1.1.4"]
                  [clj-time "0.6.0"]])
