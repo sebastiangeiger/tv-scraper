@@ -1,7 +1,2 @@
-(ns tv-scraper.core-test
-  (:require [clojure.test :refer :all]
-            [tv-scraper.core :refer :all]))
+(ns tv-scraper.core-test)
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
