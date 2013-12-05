@@ -11,6 +11,9 @@
         to-segments #(map (fn [[k v]] (str (encode (name k)) "=" (encode v))) %)]
     (reduce #(str %1 "&" %2) (mapcat to-segments values))))
 
+(defn url-for [base-url & maps]
+  (str base-url "?" (encode-params maps)))
+
 (defn follow-redirects [stream]
   (let [status (.getHeaderField stream 0)]
     (if (re-find #"302" status)
