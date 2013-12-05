@@ -1,7 +1,9 @@
 (ns tv-scraper.core-test
   (:require [clojure.test :refer :all]
             [tv-scraper.core :refer :all]
-            [tv-scraper.epiguides :refer :all]))
+            [tv-scraper.epiguides :refer :all]
+            [clj-time.core :refer [date-time]]))
+
 
 ;;@network
 (deftest find-a-show-url
@@ -31,8 +33,8 @@
                    "22     1-22      122       11/May/05   "
                    {:tag :a, :attrs {:title "Lost season 1 episode 22", :href "http://www.tvrage.com/Lost/episodes/104132"}, :content ["Born to Run"]}
                    {:tag :span, :attrs {:class "Trailers"}, :content ["[" {:tag :a, :attrs {:href "http://www.tvrage.com/Lost/episodes/104132/?trailer=1#trailer"}, :content ["Trailer"]} "]"]}])
-                {:21 {:date "04/May/05" :title "The Greater Good"}
-                 :22 {:date "11/May/05" :title "Born to Run"}})))
+                {:21 {:date (date-time 2005 5 4) :title "The Greater Good"}
+                 :22 {:date (date-time 2005 5 11) :title "Born to Run"}})))
 
 (deftest splitting-an-array-by-newlines
          (is (= (split-by-newlines ["1\n2\n\n3" {:ignore "this"} "4 5\n6"])

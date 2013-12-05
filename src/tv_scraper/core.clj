@@ -7,6 +7,7 @@
 
 (ns tv-scraper.epiguides
   (:use [clojure.string :only [replace lower-case] :rename {replace str-replace}])
+  (:use [clj-time.format :only [parse formatter] :rename {parse date-parse}])
   (:import java.net.URL)
   (:use tv-scraper.poor-mans-mechanize.form)
   (:use tv-scraper.collection-helper)
@@ -41,10 +42,11 @@
 (defn build-episode [regex [string links]]
   {:pre [(string? string)]}
   (let [fragments (re-matches regex string)
-        to-int #(Integer/parseInt %)]
+        to-int #(Integer/parseInt %)
+        to-date #(date-parse (formatter "dd/MMM/yy") %)]
     {(-> fragments (nth 3) to-int str keyword)
      {;;:season (-> fragments (nth 2) to-int)
-      :date (last fragments)
+      :date (-> fragments last to-date)
       :title (-> links first :content first)}}))
 
 (defn build-episodes [lines]
