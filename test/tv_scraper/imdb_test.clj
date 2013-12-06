@@ -10,4 +10,8 @@
          (is (= (find-show-url "The Wire") "http://www.imdb.com/title/tt0306414/")))
 
 (deftest ^:wip parsing-a-show
-         (is (= (-> "http://www.imdb.com/title/tt0411008/" parse-show-page :title) "Lost")))
+         (is (= (-> "http://www.imdb.com/title/tt0411008/" parse-show-page :title) "Lost"))
+         (is (= (-> "http://www.imdb.com/title/tt0805663" parse-show-page :seasons keys set) #{:1 :2}))
+         (is (= (-> "http://www.imdb.com/title/tt0805663" parse-show-page :seasons :1) "http://www.imdb.com/title/tt0805663/episodes?season=1"))
+         ;; (is (= (-> "http://www.imdb.com/title/tt1441135" parse-show-page :seasons :1 :episodes :2 :title) "Fallout"))
+         )
