@@ -5,6 +5,7 @@
   :main tv-scraper.core
   :test-selectors {:default (complement :google)
                    :google :google
+                   :wip :wip
                    :all (constantly true)}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [enlive "1.1.4"]

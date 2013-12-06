@@ -21,3 +21,7 @@
 
 (defn find-show-url [show-name]
   (-> show-name search-results-for first :url))
+
+(defn parse-show-page [url]
+  (let [html (-> url URL. html-resource)]
+    {:title (-> html (select [:.header :.itemprop]) first text)}))
