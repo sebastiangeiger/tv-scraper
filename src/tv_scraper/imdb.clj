@@ -32,6 +32,23 @@
 (defn retrieve-seasons [html]
   (extract-seasons-urls html))
 
+(defn ^:private build-episodes [ep-numbers titles dates]
+  {:pre [(= (count ep-numbers) (count titles) (count dates))]}
+  (reduce merge (map #(hash-map %1 {:title %2 :date %3}) ep-numbers titles dates)))
+
+(defn parse-season-page [url]
+  ;; The meta tag on IMDB is screwed up (it doesn't close), that's why I need
+  ;; to parse the season page in a rather weird fashion
+  (let [html (-> url URL. html-resource)
+        correct-date #(->> % (re-matches #"(\w{3}).? (\d{1,2}), (\d{4})") rest (clojure.string/join "-"))
+        to-date #(date-parse (formatter "MMM-dd-yyyy") (correct-date %))
+        dates (map #(-> % text clojure.string/trim to-date) (select html [:.airdate]))
+        extract-ep-number #(->> % (re-matches #"S\d+, Ep(\d+)") last)
+        ep-numbers (map #(-> % text extract-ep-number keyword) (select html [:.list_item :.image :div :div]))
+        titles (map #(-> % :attrs :title) (select html [:.list_item :.image :a]))]
+    (build-episodes ep-numbers titles dates)))
+
+
 (defn parse-show-page [url]
   (let [html (-> url URL. html-resource)
         extract-title #(-> % (select [:.header :.itemprop]) first text)]
