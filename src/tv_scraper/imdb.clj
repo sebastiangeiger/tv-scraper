@@ -29,9 +29,6 @@
         build-hash #(hash-map (-> % text keyword) (-> % :attrs :href correct-imdb-url))]
     (->> links (map build-hash) (reduce merge))))
 
-(defn retrieve-seasons [html]
-  (extract-seasons-urls html))
-
 (defn ^:private build-episodes [ep-numbers titles dates]
   {:pre [(= (count ep-numbers) (count titles) (count dates))]}
   (reduce merge (map #(hash-map %1 {:title %2 :date %3}) ep-numbers titles dates)))
@@ -48,9 +45,15 @@
         titles (map #(-> % :attrs :title) (select html [:.list_item :.image :a]))]
     (build-episodes ep-numbers titles dates)))
 
+(defn parse-season-pages [seasons]
+  (into {} (for [[number url] seasons]
+             [number {:episodes (parse-season-page url)}])))
+
+(defn parse-seasons [html]
+  (-> html extract-seasons-urls parse-season-pages))
 
 (defn parse-show-page [url]
   (let [html (-> url URL. html-resource)
         extract-title #(-> % (select [:.header :.itemprop]) first text)]
     {:title (extract-title html)
-     :seasons (retrieve-seasons html)}))
+     :seasons (parse-seasons html)}))
