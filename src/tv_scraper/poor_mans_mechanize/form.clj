@@ -14,7 +14,7 @@
 
 (defn encode-get-url [form-tag params]
   (let [base-url (-> form-tag :attrs :action)]
-    (url-for base-url params)))
+    (apply url-for (cons base-url params))))
 
 (defn submit-form [form-tag submit-selector]
   {:pre [(= (-> form-tag :tag) :form)

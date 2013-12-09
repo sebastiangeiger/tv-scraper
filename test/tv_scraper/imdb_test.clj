@@ -13,8 +13,11 @@
          (is (= (-> "http://www.imdb.com/title/tt0805663/episodes?season=1" parse-season-page :3 :date) (date-time 2006 10 4)))
          (is (= (-> "http://www.imdb.com/title/tt0805663/episodes?season=1" parse-season-page :3 :title) "Four Horsemen")))
 
-(deftest ^:network parsing-a-show
+(defn keyword-range [& args]
+  (map (comp keyword str) (apply range args)))
+
+(deftest parsing-a-show
          (is (= (-> "http://www.imdb.com/title/tt0411008/" parse-show-page :title) "Lost"))
          (is (= (-> "http://www.imdb.com/title/tt0805663" parse-show-page :seasons keys set) #{:1 :2}))
-         (is (= (-> "http://www.imdb.com/title/tt0805663" parse-show-page :seasons :1) "http://www.imdb.com/title/tt0805663/episodes?season=1"))
+         (is (= (-> "http://www.imdb.com/title/tt0805663" parse-show-page :seasons :1 :episodes keys set) (set (keyword-range 1 23))))
          (is (= (-> "http://www.imdb.com/title/tt1441135" parse-show-page :seasons :1 :episodes :14 :title) "Better Angels")))
