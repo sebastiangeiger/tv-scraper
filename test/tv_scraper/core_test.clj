@@ -3,7 +3,7 @@
             [tv-scraper.core :refer :all]
             [tv-scraper.imdb]
             [tv-scraper.epguides]))
-(deftest ^:wip producing-episode-lists
+(deftest producing-episode-lists
          (let [show {:seasons {:1 {:episodes {:1 {:title "S01E01"}}}
                                :2 {:episodes {:1 {:title "S02E01"}}}}}]
            (is (= (episode-list show)
@@ -11,13 +11,13 @@
                     {:seasons :2 :episodes :1 :title "S02E01"}})))
          )
 
-(deftest ^:wip testing-flat?
+(deftest testing-flat?
          (is (flat? {:hello 'world}))
          (is (flat? [{:hello 'world}{:and 'something}]))
          (is (not (flat? {:hello {:beautiful 'world} :and 'something})))
          )
 
-(deftest ^:wip testing-paths-through
+(deftest testing-paths-through
          (let [show {:seasons {:1 {:episodes {:1 {:title "S01E01"}}}
                                :2 {:episodes {:1 {:title "S02E01"}
                                               :2 {:title "S02E02"}}}}}
@@ -34,8 +34,15 @@
                                          [:seasons :2 :episodes :1]
                                          [:seasons :2 :episodes :2]}))))
 
-(deftest ^:wip checking-if-they-produce-the-same-results
-         (is (= (-> "http://www.imdb.com/title/tt0805663" tv-scraper.imdb/parse-show-page episode-list) []))
-         ;; (is (= (-> "http://www.imdb.com/title/tt0805663" tv-scraper.imdb/parse-show-page episode-list)
-         ;;        (-> "http://epguides.com/Jericho/"    tv-scraper.epguides/parse-show-page episode-list))))
-                )
+(deftest ^:wip testing-report-difference
+         (is (= (report-difference {:1 :2} {:1 :2}) "{:1 :2}"))
+         (is (= (report-difference {:1 :2 :3 :4} {:1 :3 :3 :4}) "{:1 <:2|:3> :3 :4}"))
+         (is (= (report-difference {:1 :2} {}) "{<:1 :2|>}"))
+         (is (= (report-difference {:1 :2} {:1 nil}) "{:1 <:2|>}"))
+         (is (= (report-difference {} {:1 :2}) "{<|:1 :2>}"))
+         )
+
+(deftest checking-if-they-produce-the-same-results
+  (let [imdb (-> "http://www.imdb.com/title/tt0805663" tv-scraper.imdb/parse-show-page episode-list)
+        epguides (-> "http://epguides.com/Jericho/"    tv-scraper.epguides/parse-show-page episode-list)]
+         (is (= epguides imdb) (report-set-difference epguides imdb))))
