@@ -12,7 +12,8 @@
                     {:seasons :2 :episodes :1 :title "S02E01"}})))
          )
 
-(deftest testing-flat?
+(deftest ^:wip testing-flat?
+         (is (flat? {}))
          (is (flat? {:hello 'world}))
          (is (flat? [{:hello 'world}{:and 'something}]))
          (is (not (flat? {:hello {:beautiful 'world} :and 'something})))

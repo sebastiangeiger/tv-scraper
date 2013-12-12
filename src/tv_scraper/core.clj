@@ -6,7 +6,10 @@
   (println x "Hello, World!"))
 
 (defn flat? [element]
-  (or (not (map? element)) (not (reduce #(or %1 %2) (map map? (vals element))))))
+  (or
+    (empty? element)
+    (not (map? element))
+    (not (reduce #(or %1 %2) (map map? (vals element))))))
 
 (defn paths-through [nested-map]
   (let [merge-in (fn [element more-elements]
