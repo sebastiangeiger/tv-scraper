@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [tv-scraper.core :refer :all]
             [tv-scraper.imdb]
+            [tv-scraper.debug-output :as debug]
             [tv-scraper.epguides]))
 (deftest producing-episode-lists
          (let [show {:seasons {:1 {:episodes {:1 {:title "S01E01"}}}
@@ -34,15 +35,7 @@
                                          [:seasons :2 :episodes :1]
                                          [:seasons :2 :episodes :2]}))))
 
-(deftest ^:wip testing-report-difference
-         (is (= (report-difference {:1 :2} {:1 :2}) "{:1 :2}"))
-         (is (= (report-difference {:1 :2 :3 :4} {:1 :3 :3 :4}) "{:1 <:2|:3> :3 :4}"))
-         (is (= (report-difference {:1 :2} {}) "{<:1 :2|>}"))
-         (is (= (report-difference {:1 :2} {:1 nil}) "{:1 <:2|>}"))
-         (is (= (report-difference {} {:1 :2}) "{<|:1 :2>}"))
-         )
-
 (deftest checking-if-they-produce-the-same-results
   (let [imdb (-> "http://www.imdb.com/title/tt0805663" tv-scraper.imdb/parse-show-page episode-list)
         epguides (-> "http://epguides.com/Jericho/"    tv-scraper.epguides/parse-show-page episode-list)]
-         (is (= epguides imdb) (report-set-difference epguides imdb))))
+         (is (= epguides imdb))))
