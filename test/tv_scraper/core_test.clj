@@ -12,7 +12,7 @@
                     {:seasons :2 :episodes :1 :title "S02E01"}})))
          )
 
-(deftest ^:wip testing-flat?
+(deftest testing-flat?
          (is (flat? {}))
          (is (flat? {:hello 'world}))
          (is (flat? [{:hello 'world}{:and 'something}]))
@@ -36,7 +36,7 @@
                                          [:seasons :2 :episodes :1]
                                          [:seasons :2 :episodes :2]}))))
 
-(deftest checking-if-they-produce-the-same-results
-  (let [imdb (-> "http://www.imdb.com/title/tt0805663" tv-scraper.imdb/parse-show-page episode-list)
-        epguides (-> "http://epguides.com/Jericho/"    tv-scraper.epguides/parse-show-page episode-list)]
-         (is (= epguides imdb))))
+(deftest ^:wip checking-if-they-produce-the-same-results
+  (let [imdb (-> "http://www.imdb.com/title/tt0805663" tv-scraper.imdb/parse-show-page)
+        epguides (-> "http://epguides.com/Jericho/"    tv-scraper.epguides/parse-show-page)]
+         (is (= epguides imdb) (debug/report-difference epguides imdb))))

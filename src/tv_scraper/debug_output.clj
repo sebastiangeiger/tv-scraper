@@ -15,7 +15,8 @@
 
 
 (ns tv-scraper.debug-output
-  (:require [clojure.set :refer [union]])
+  (:require [tv-scraper.core :refer [flat?]])
+  (:require [clojure.set :refer [union intersection]])
   (:refer clojure.string :only [join] :rename {join str-join})
   (:require [tv-scraper.debug-output.colorize :refer [red green]]))
 
@@ -23,18 +24,21 @@
   (let [f #(str-join " " %)]
     (str "<" (green (f a))  "|" (red (f b)) ">")))
 
-(defn ^:private map-diff [k map-1 map-2]
-  (let [v-1 (k map-1)
-        v-2 (k map-2)]
-    (if (and (contains? map-1 k) (contains? map-2 k) )
-      (if (= v-1 v-2)
-        (str k " " v-1)
-        (str k " " (mark-diff [v-1] [v-2])))
-      (if (contains? map-1 k)
-        (mark-diff [k v-1] [])
-        (mark-diff [] [k v-2])))))
+(defn keys-in-common? [a b]
+  (and (map? a)
+       (map? b)
+       (seq (intersection (set (keys a)) (set (keys b))))))
+
+(defn maps? [& args]
+  (->> args (map map?) (reduce #(and %1 %2))))
 
 (defn report-difference [a b]
-  (let [all-keys (union (set (keys a)) (set (keys b)))
-        fragments (map #(map-diff % a b) all-keys)]
-    (str "{" (str-join " " fragments) "}")))
+  (if (maps? a b)
+    (if (keys-in-common? a b)
+      (let [all-keys (union (set (keys a)) (set (keys b)))
+            values   (map #(report-difference (% a) (% b)) all-keys)]
+        (str "{" (str-join " " (mapcat vector all-keys values)) "}"))
+      (mark-diff [a] [b]))
+    (if (= a b)
+      a
+      (mark-diff [a] [b]))))
