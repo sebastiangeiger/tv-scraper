@@ -14,14 +14,14 @@
                 [{:title "The Wire" :url "http://epguides.com/Wire/"}
                  {:title "Wire in the Blood" :url "http://epguides.com/WireintheBlood/"}])))
 
-(deftest ^:network parsing-a-show-page
+(deftest ^:wip parsing-a-show-page
          (is (= (-> "http://epguides.com/Futurescape" parse-show-page :title) "Futurescape"))
          (is (= (-> "http://epguides.com/Lost" parse-show-page :seasons keys set) #{:1 :2 :3 :4 :5 :6}))
          (is (= (-> "http://epguides.com/Futurescape" parse-show-page :seasons :1 :episodes :6 :title) "How to Be a Superhuman"))
          (is (= (-> "http://epguides.com/Lost" parse-show-page :seasons :2 :episodes :17 :title) "Lockdown"))
          )
 
-(deftest parsing-the-season-body
+(deftest ^:wip parsing-the-season-body
          (is (= (build-episodes
                   ["21     1-21      121       04/May/05   "
                    {:tag :a, :attrs {:title "Lost season 1 episode 21", :href "http://www.tvrage.com/Lost/episodes/104131"}, :content ["The Greater Good"]}
