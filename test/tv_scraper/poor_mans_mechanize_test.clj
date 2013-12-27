@@ -10,7 +10,16 @@
                  {:#googleSearch "The Wire"})
                {:tag :form, :content [{:tag :input, :attrs {:size "40", :value "The Wire", :id "googleSearch", :name "q", :type "text"}, :content []}]})))
 
+(deftest encoding-urls
+         (is (=
+               (url-for "http://www.imdb.com/find" {:q "The Wire" :s "tt"} {:ttype "tv"})
+               "http://www.imdb.com/find?q=The+Wire&s=tt&ttype=tv"))
+         (is (=
+               (url-for "http://www.imdb.com/find")
+               "http://www.imdb.com/find")))
+
 (deftest encoding-params
+         (is (= (encode-params []) nil))
          (is (=
                (encode-params [{:hl "en"} {:q "allintitle:" :test "more"} {:q "site:epguides.com"} {:q "The Wire"}])
                "hl=en&test=more&q=allintitle%3A&q=site%3Aepguides.com&q=The+Wire")))
