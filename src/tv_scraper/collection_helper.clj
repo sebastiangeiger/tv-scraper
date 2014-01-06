@@ -1,11 +1,12 @@
 (ns tv-scraper.collection-helper)
 (defn ^:private correct-first [pred [[first-key first-values] & remainder :as array]]
-    (if (pred first-key)
+    (if (and first-key (pred first-key))
       array
       (cons [nil (cons first-key first-values)] remainder)))
 
 (defn split-on
-  ([pred coll] (split-on pred coll []))
+  ([pred coll]
+   (if (empty? coll) [] (split-on pred coll [])))
   ([pred [current & coll] array]
    (let [[fitting remaining] (split-with #(not (pred %)) coll)]
      (if (nil? current)
