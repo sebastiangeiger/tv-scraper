@@ -14,7 +14,7 @@
    :season-headings-regex [#"^\s*•\s*Season (\d+)\s*$" #"^(Other Episodes)$"]
    })
 
-(defn interpret-search-results [html-content]
+(defn ^:private interpret-search-results [html-content]
   (let [results (select html-content [:#search [:li :.g]])
         title-regex #(re-matches (config :title-regex) %)
         extract-title #(-> % (select [:h3]) first text title-regex last)
@@ -33,14 +33,14 @@
   (let [split #(if (string? %) (clojure.string/split-lines %) [%])]
     (remove #(and (string? %) (clojure.string/blank? %)) (mapcat split array))))
 
-(defn split-into-seasons [page-data extract-season]
+(defn ^:private split-into-seasons [page-data extract-season]
   (let [cleaned-up (-> page-data first :content split-by-newlines)
         season-number #(-> % extract-season lower-case (str-replace " " "_") keyword)
         season-headline? #(not (nil? (extract-season %)))
         remove-meta-data #(into {} (for [[k v] % :when (not (nil? k))] [k v]))]
     (convert-keys season-number (remove-meta-data (split-map season-headline? cleaned-up)))))
 
-(defn ^:private build-episode [regex extract-key [string links]]
+(defn ^:private build-episode [regex [string links] & {:keys [extract-key]}]
   {:pre [(string? string) (re-matches regex string)]}
   (let [fragments (re-matches regex string)
         to-date #(if (= % "UNAIRED") :unaired (date-parse (formatter "dd/MMM/yy") %))
@@ -52,10 +52,11 @@
 
 (defn build-episodes [lines]
   (let [regex (config :episode-regex)
-        to-int #(Integer/parseInt %)]
+        lines (or lines [])
+        extract-key #(-> % (nth 3) Integer/parseInt str)]
     (->> lines
       (split-on #(and (string? %) (re-matches regex %)))
-      (map #(build-episode regex (fn [x] (-> x (nth 3) to-int str)) %))
+      (map #(build-episode regex % :extract-key extract-key))
       (apply merge))))
 
 (defn build-specials [lines]
@@ -63,9 +64,9 @@
         lines (or lines [])]
     (->> lines
       (split-on #(and (string? %) (re-matches regex %)))
-      (map #(build-episode regex nil %)))))
+      (map #(build-episode regex %)))))
 
-(defn split-into-episodes [seasons]
+(defn ^:private split-into-episodes [seasons]
   (merge
     (into {} (for [[k v] (dissoc seasons :other_episodes)] [k {:episodes (build-episodes v)}]))
     {:specials (build-specials (seasons :other_episodes))}))
