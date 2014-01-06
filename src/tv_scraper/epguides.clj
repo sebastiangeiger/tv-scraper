@@ -50,7 +50,10 @@
 
 (defn build-episodes [lines]
   (let [regex (config :episode-regex)]
-    (apply merge (map #(build-episode regex %) (split-on #(and (string? %) (re-matches regex %)) lines)))))
+    (->> lines
+      (split-on #(and (string? %) (re-matches regex %)))
+      (map #(build-episode regex %))
+      (apply merge))))
 
 (defn split-into-episodes [seasons]
   (into {} (for [[k v] seasons] [k {:episodes (build-episodes v)}])))
