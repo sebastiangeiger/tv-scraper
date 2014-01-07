@@ -19,3 +19,5 @@
 (defn convert-keys [f the-map]
   (zipmap (map f (keys the-map)) (vals the-map)))
 
+(defn update-in-multiple [m f [ks & remainder]]
+  (if ks (recur (update-in m ks f) f remainder) m))

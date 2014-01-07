@@ -15,11 +15,29 @@
            (is (= (-> jericho-season-1 :3 :title) "Four Horsemen"))))
 
 (defn keyword-range [& args]
-  (map (comp keyword str) (apply range args)))
+  (set (map (comp keyword str) (apply range args))))
 
-(deftest ^:network parsing-a-show
+(deftest correcting-the-specials
+         (is (= (correct-specials
+                  {:1 {:episodes {:1 "Ep 1"}}})
+                {:1 {:episodes {:1 "Ep 1"}}}))
+         (is (= (correct-specials
+                  {:1 {:episodes {:1 "Ep 1x1"}}
+                   :2 {:episodes {:0 "Special 2"
+                                  :1 "Ep 2x1"}}})
+                {:1 {:episodes {:1 "Ep 1x1"}}
+                 :2 {:episodes {:1 "Ep 2x1"}}
+                 :specials ["Special 2"]})))
+
+(deftest parsing-a-show
          (let [jericho (-> "http://www.imdb.com/title/tt0805663" parse-show-page)]
-           (is (= (-> "http://www.imdb.com/title/tt1441135" parse-show-page :title) "FlashForward"))
-           (is (= (-> jericho :seasons keys set) #{:1 :2}))
-           (is (= (-> jericho :seasons :1 :episodes keys set) (set (keyword-range 1 23))))
-           (is (= (-> jericho :seasons :1 :episodes :14 :title) "Heart of Winter"))))
+           (is (= (-> "http://www.imdb.com/title/tt1441135" parse-show-page :title)
+                  "FlashForward"))
+           (is (= (-> jericho :seasons keys set) #{:1 :2 :specials}))
+           (is (= (-> jericho :seasons :1 :episodes keys set)
+                  (keyword-range 1 23)))
+           (is (= (-> jericho :seasons :1 :episodes :14 :title) "Heart of Winter"))
+           (is (= (-> jericho :seasons :2 :episodes keys set)
+                  (keyword-range 1 8)))
+           (is (= (-> jericho :seasons :specials)
+                  [{:title "Return to Jericho" :date (date-time 2007 2 12)}]))))

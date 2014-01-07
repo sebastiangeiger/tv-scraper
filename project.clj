@@ -6,6 +6,7 @@
   :test-selectors {:default (complement :google)
                    :google :google
                    :wip :wip
+                   :failing :failing
                    :all (constantly true)}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [enlive "1.1.4"]
