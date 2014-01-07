@@ -4,7 +4,8 @@
   (:import java.net.URL)
   (:use tv-scraper.poor-mans-mechanize.network)
   (:use tv-scraper.collection-helper)
-  (:use net.cgrand.enlive-html))
+  (:use net.cgrand.enlive-html)
+  (:require tv-scraper.core))
 
 (defn ^:private search-url [show-name]
   (-> "http://www.imdb.com/find" (url-for {:q show-name :s "tt" :ttype "tv"}) URL.))
@@ -49,8 +50,28 @@
   (into {} (for [[number url] seasons]
              [number {:episodes (parse-season-page url)}])))
 
+(defn ^:private add-specials-key [seasons]
+  (let [specials (->> seasons
+                   keys
+                   (map #(concat [%] [:episodes :0]))
+                   (map #(get-in seasons %))
+                   (remove nil?))]
+      (if (empty? specials)
+        seasons
+        (assoc-in seasons [:specials] specials))))
+
+(defn ^:private remove-specials-from-seasons [seasons]
+  (->> seasons
+    keys
+    (filter #(not= % :specials))
+    (map #(vector % :episodes))
+    (update-in-multiple seasons #(dissoc % :0))))
+
+(defn correct-specials [seasons]
+  (-> seasons add-specials-key remove-specials-from-seasons))
+
 (defn parse-seasons [html]
-  (-> html extract-seasons-urls parse-season-pages))
+  (-> html extract-seasons-urls parse-season-pages correct-specials))
 
 (defn parse-show-page [url]
   (let [html (-> url URL. html-resource)
