@@ -20,3 +20,8 @@
                  {:title "Batcave"}
                  {:title "The Legend of Zelda"}
                  {:title "Edgar & Ellen"}])))
+
+(deftest finding-the-list-of-episodes-page
+         (is (= (-> "test/tv_scraper/fixtures/the_wire" slurp list-of-episodes-page)
+                "List of The Wire episodes")))
+                "List of The Wire episodes")))
