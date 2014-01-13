@@ -2,6 +2,8 @@
   (:require [clojure.test :refer :all]
             [tv-scraper.wikipedia :refer :all]
             [clj-time.core :refer [date-time]]))
+(defn load-wikitext [name]
+  (slurp (str "test/tv_scraper/fixtures/" name)))
 
 (deftest find-a-show-url
          (is (= (find-show-page-title "Sons of Anarchy") "Sons of Anarchy"))
@@ -24,4 +26,9 @@
 (deftest finding-the-list-of-episodes-page
          (is (= (-> "test/tv_scraper/fixtures/the_wire" slurp list-of-episodes-page)
                 "List of The Wire episodes")))
-                "List of The Wire episodes")))
+
+(deftest ^:wip parsing-the-list-of-episodes-page
+         (let [jericho (-> "list_of_jericho_episodes"
+                         load-wikitext
+                         parse-list-of-episodes)]
+           (is (= (jericho :title) "Jericho"))))

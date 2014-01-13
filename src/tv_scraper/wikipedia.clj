@@ -3,8 +3,12 @@
             [net.cgrand.enlive-html :refer :all])
   (:import java.net.URL))
 
+(def ^:private config
+  {:title-regex #".*\{\{DISPLAYTITLE\:List of ''([^']*).*\}\}.*$"})
+
 (defn ^:private wikipedia-url [params]
   (-> "http://en.wikipedia.org/w/api.php" (url-for params) URL.))
+
 (defn ^:private search-url [show-name]
   (wikipedia-url {:action "query"
                   :list "search"
@@ -42,3 +46,13 @@
     (filter identity)
     (map clojure.string/trim)
     first))
+
+(defn extract-title [content]
+  (->> content
+    (clojure.string/split-lines)
+    (clojure.string/join " ")
+    (re-matches (config :title-regex))
+    last))
+
+(defn parse-list-of-episodes [page-content]
+  {:title (extract-title page-content)})
