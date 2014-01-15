@@ -3,7 +3,9 @@
 (def tokens
   {"{{" :template-start
    "|"  :pipe
-   "}}" :template-end})
+   "}}" :template-end
+   "[[" :something-start
+   "]]" :something-end})
 
 (defn starts-with? [string prefix]
   (let [beginning (subs string 0 (min (count string) (count prefix)))]
@@ -26,9 +28,11 @@
         result-addition (remove #(= "" %) result-addition)]
     [new-memory (apply str remainder) (concat result result-addition)]))
 
-(defn tokenize
-  ([text] (tokenize "" text []))
-  ([memory [current & remainder :as text] result]
-  (if (nil? current)
-    result
-    (apply tokenize (tokenize-step memory text result)))))
+(defn tokenize [text]
+  (loop [memory "" text text result []]
+    (if (empty? text)
+      (if (empty? memory)
+        result
+        (concat result [memory]))
+      (let [[new-memory new-text new-result] (tokenize-step memory text result)]
+        (recur new-memory new-text new-result)))))
