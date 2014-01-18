@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [tv-scraper.wikipedia.parser :refer :all]))
 
-(deftest test-tokenize
+(deftest ^:wip test-tokenize
          (is (= (tokenize "single-word")
                 ["single-word"]))
          (is (= (tokenize "{{name|args}}")
@@ -15,11 +15,11 @@
                 [:h1 "Headline" :h1]))
          (is (= (tokenize "==Headline==")
                 [:h2 "Headline" :h2]))
-         ;; (is (= (tokenize "[[File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static[[wikt:-esque|esque]] font, is accompanied by [[Morse code]] specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background.]]")
-         ;;        []))
+         ;;Just checking it doesn't throw an error
+         (is (tokenize "[[File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static[[wikt:-esque|esque]] font, is accompanied by [[Morse code]] specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background.]]"))
          )
 
-(deftest ^:wip test-tokenize-step
+(deftest test-tokenize-step
          (is (= (tokenize-step "name" "|args}}" [:template-start])
                 ["" "args}}" [:template-start "name" :pipe]]))
          (is (= (tokenize-step "" "==Headline==" [])
@@ -34,8 +34,10 @@
                 ["}" "}" [:template-start "name" :pipe "args"]]))
          (is (= (tokenize-step "}" "}" [:template-start "name" :pipe "args"])
                 ["}}" "" [:template-start "name" :pipe "args"]]))
-         ;; (is (= (tokenize-step "}}" "" [:template-start "name" :pipe "args"])
-         ;;        ["" "" [:template-start "name" :pipe "args" :template-end]]))
+         (is (= (tokenize-step "}}" "" [:template-start "name" :pipe "args"])
+                ["" "" [:template-start "name" :pipe "args" :template-end]]))
+         (is (= (tokenize-step "b" "" ["a" :pipe])
+                ["" "" ["a" :pipe "b"]]))
          (is (= (tokenize-step "=" "Headline=" [])
                 ["H" "eadline=" [:h1]]))
          (is (= (tokenize-step "=" "=Headline==" [])

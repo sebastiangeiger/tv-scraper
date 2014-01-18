@@ -32,25 +32,25 @@
     (cond
       (and
         (contains? tokens current)
-        (one-starts-with? tokens current)) (do (println 1) ["" [memory (tokens current)]])
+        (one-starts-with? tokens current))  ["" [memory (tokens current)]]
       (and
         (contains? tokens memory)
-        (none-start-with? tokens joined)) (do (println 2) [current [(tokens memory)]])
+        (none-start-with? tokens joined)) [current [(tokens memory)]]
       (and
         (none-start-with? tokens memory)
-        (any-start-with? tokens current)) (do (println 3) [current [memory]])
-      :else                                (do (println 4) [joined []]))))
+        (any-start-with? tokens current)) [current [memory]]
+      :else                               [joined []])))
 
 (defn tokenize-step [memory [current & remainder] result]
   (let [[new-memory result-addition] (substitute-tokens memory current)
         result-addition (remove #(= "" %) result-addition)]
-    [new-memory (apply str remainder) (concat result result-addition)]))
+    (if (nil? current)
+      ["" "" (concat result [(or (tokens memory) memory)])] ;;Forcing evaluation in last step
+      [new-memory (apply str remainder) (concat result result-addition)])))
 
 (defn tokenize [text]
   (loop [memory "" text text result []]
-    (if (empty? text)
-      (if (empty? memory)
-        result
-        (concat result [memory]))
+    (if (and (empty? text) (empty? memory))
+      result
       (let [[new-memory new-text new-result] (tokenize-step memory text result)]
         (recur new-memory new-text new-result)))))
