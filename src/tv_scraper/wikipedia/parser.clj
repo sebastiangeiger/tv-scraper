@@ -48,13 +48,9 @@
       ["" "" (concat result [(or (tokens memory) memory)])] ;;Forcing evaluation in last step
       [new-memory remainder (concat result result-addition)])))
 
-(defn tokenize-step* [memory text result]
-  (let [[memory' text' result'] (tokenize-step memory text result)]
-    [memory' (apply str text') result']))
-
 (defn tokenize [text]
   (loop [memory ""
-         text text
+         text   text
          result []]
     (if (and (empty? text) (empty? memory))
       result

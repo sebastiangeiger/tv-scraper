@@ -16,12 +16,16 @@
                 [:h1 "Headline" :h1]))
          (is (= (tokenize "==Headline==")
                 [:h2 "Headline" :h2]))
-         ;; Just checking it doesn't throw an error
+         ;; Just checking these don't throw an error
          (is (tokenize "[[File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static[[wikt:-esque|esque]] font, is accompanied by [[Morse code]] specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background.]]"))
          (is (-> "list_of_jericho_episodes" load-wikitext tokenize))
          )
 
 (deftest test-tokenize-step
+         (defn tokenize-step* [memory text result]
+           (let [[memory' text' result'] (tokenize-step memory text result)]
+             [memory' (apply str text') result']))
+
          (is (= (tokenize-step* "name" "|args}}" [:template-start])
                 ["" "args}}" [:template-start "name" :pipe]]))
          (is (= (tokenize-step* "" "==Headline==" [])
