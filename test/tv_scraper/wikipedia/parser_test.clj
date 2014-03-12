@@ -21,6 +21,10 @@
          (is (-> "list_of_jericho_episodes" load-wikitext tokenize))
          )
 
+(deftest test-conj-concat
+         (is (= (conj-concat [1 2] [3 4]) [1 2 3 4]))
+         (is (= (conj-concat [1 2] []) [1 2])))
+
 (deftest test-tokenize-step
          (defn tokenize-step* [memory text result]
            (let [[memory' text' result'] (tokenize-step memory text result)]

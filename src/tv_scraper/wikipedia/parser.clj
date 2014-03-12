@@ -41,12 +41,22 @@
         (any-start-with? tokens current)) [current [memory]]
       :else                               [joined []])))
 
+(defn conj-concat [a b]
+  "Recursively uses conj to concat lists a and b.
+   Usage: (conj-concat [1 2] [3 4 5]) #=> [1 2 3 4 5]
+   Better than concat in some cases, especially when you don't want lazy lists."
+  (loop [a          a
+         [head & b] b]
+    (if (nil? head)
+      a
+      (recur (conj a head) b))))
+
 (defn tokenize-step [memory [current & remainder] result]
   (let [[new-memory result-addition] (substitute-tokens memory current)
         result-addition (remove #(= "" %) result-addition)]
     (if (nil? current)
-      ["" "" (concat result [(or (tokens memory) memory)])] ;;Forcing evaluation in last step
-      [new-memory remainder (concat result result-addition)])))
+      ["" "" (conj-concat result [(or (tokens memory) memory)])] ;;Forcing evaluation in last step
+      [new-memory remainder (conj-concat result result-addition)])))
 
 (defn tokenize [text]
   (loop [memory ""
