@@ -46,11 +46,18 @@
         result-addition (remove #(= "" %) result-addition)]
     (if (nil? current)
       ["" "" (concat result [(or (tokens memory) memory)])] ;;Forcing evaluation in last step
-      [new-memory (apply str remainder) (concat result result-addition)])))
+      [new-memory remainder (concat result result-addition)])))
+
+(defn tokenize-step* [memory text result]
+  (let [[memory' text' result'] (tokenize-step memory text result)]
+    [memory' (apply str text') result']))
 
 (defn tokenize [text]
-  (loop [memory "" text text result []]
+  (loop [memory ""
+         text text
+         result []]
     (if (and (empty? text) (empty? memory))
       result
-      (let [[new-memory new-text new-result] (tokenize-step memory text result)]
-        (recur new-memory new-text new-result)))))
+      (let [[memory' text' result']
+            (tokenize-step memory text result)]
+        (recur memory' text' result')))))

@@ -1,5 +1,6 @@
 (ns tv-scraper.wikipedia.parser-test
   (:require [clojure.test :refer :all]
+            [tv-scraper.wikipedia-test :refer [load-wikitext]]
             [tv-scraper.wikipedia.parser :refer :all]))
 
 (deftest ^:wip test-tokenize
@@ -15,34 +16,35 @@
                 [:h1 "Headline" :h1]))
          (is (= (tokenize "==Headline==")
                 [:h2 "Headline" :h2]))
-         ;;Just checking it doesn't throw an error
+         ;; Just checking it doesn't throw an error
          (is (tokenize "[[File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static[[wikt:-esque|esque]] font, is accompanied by [[Morse code]] specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background.]]"))
+         (is (-> "list_of_jericho_episodes" load-wikitext tokenize))
          )
 
 (deftest test-tokenize-step
-         (is (= (tokenize-step "name" "|args}}" [:template-start])
+         (is (= (tokenize-step* "name" "|args}}" [:template-start])
                 ["" "args}}" [:template-start "name" :pipe]]))
-         (is (= (tokenize-step "" "==Headline==" [])
+         (is (= (tokenize-step* "" "==Headline==" [])
                 ["=" "=Headline==" []]))
-         (is (= (tokenize-step "" "{{name|args}}" [])
+         (is (= (tokenize-step* "" "{{name|args}}" [])
                 ["{" "{name|args}}" []]))
-         (is (= (tokenize-step "{" "{name|args}}" [])
+         (is (= (tokenize-step* "{" "{name|args}}" [])
                 ["{{" "name|args}}" []]))
-         (is (= (tokenize-step "{{" "name|args}}" [])
+         (is (= (tokenize-step* "{{" "name|args}}" [])
                 ["n" "ame|args}}" [:template-start]]))
-         (is (= (tokenize-step "args" "}}" [:template-start "name" :pipe])
+         (is (= (tokenize-step* "args" "}}" [:template-start "name" :pipe])
                 ["}" "}" [:template-start "name" :pipe "args"]]))
-         (is (= (tokenize-step "}" "}" [:template-start "name" :pipe "args"])
+         (is (= (tokenize-step* "}" "}" [:template-start "name" :pipe "args"])
                 ["}}" "" [:template-start "name" :pipe "args"]]))
-         (is (= (tokenize-step "}}" "" [:template-start "name" :pipe "args"])
+         (is (= (tokenize-step* "}}" "" [:template-start "name" :pipe "args"])
                 ["" "" [:template-start "name" :pipe "args" :template-end]]))
-         (is (= (tokenize-step "b" "" ["a" :pipe])
+         (is (= (tokenize-step* "b" "" ["a" :pipe])
                 ["" "" ["a" :pipe "b"]]))
-         (is (= (tokenize-step "=" "Headline=" [])
+         (is (= (tokenize-step* "=" "Headline=" [])
                 ["H" "eadline=" [:h1]]))
-         (is (= (tokenize-step "=" "=Headline==" [])
+         (is (= (tokenize-step* "=" "=Headline==" [])
                 ["==" "Headline==" []]))
-         (is (= (tokenize-step "==" "Headline==" [])
+         (is (= (tokenize-step* "==" "Headline==" [])
                 ["H" "eadline==" [:h2]]))
          )
 

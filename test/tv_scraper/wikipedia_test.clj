@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [tv-scraper.wikipedia :refer :all]
             [clj-time.core :refer [date-time]]))
+
 (defn load-wikitext [name]
   (slurp (str "test/tv_scraper/fixtures/" name)))
 
@@ -31,4 +32,13 @@
          (let [jericho (-> "list_of_jericho_episodes"
                          load-wikitext
                          parse-list-of-episodes)]
-           (is (= (jericho :title) "Jericho"))))
+           (is (= (jericho :title) "Jericho"))
+           (is (= (-> jericho :seasons keys set) #{:1 :2 :specials}))
+           ))
+           ;; (is (= (-> jericho :seasons :1 :episodes keys set)
+           ;;        (keyword-range 1 23)))
+           ;; (is (= (-> jericho :seasons :1 :episodes :14 :title) "Heart of Winter"))
+           ;; (is (= (-> jericho :seasons :2 :episodes keys set)
+           ;;        (keyword-range 1 8)))
+           ;; (is (= (-> jericho :seasons :specials)
+           ;;        [{:title "Return to Jericho" :date (date-time 2007 2 12)}])))
