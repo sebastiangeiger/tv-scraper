@@ -38,9 +38,10 @@
   ;; The meta tag on IMDB is screwed up (it doesn't close), that's why I need
   ;; to parse the season page in a rather weird fashion
   (let [html (-> url URL. html-resource)
-        correct-date #(->> % (re-matches #"(\w{3}).? (\d{1,2}), (\d{4})") rest (clojure.string/join "-"))
-        to-date #(date-parse (formatter "MMM-dd-yyyy") (correct-date %))
-        dates (map #(-> % text clojure.string/trim to-date) (select html [:.airdate]))
+        correct-date #(->> % (re-matches #"(\d{1,2}) (\w{3})\.? (\d{4})") rest (clojure.string/join "-"))
+        to-date #(date-parse (formatter "dd-MMM-yyyy") (correct-date %))
+        airdates (select html [:.airdate])
+        dates (map #(-> % text clojure.string/trim to-date) airdates)
         extract-ep-number #(->> % (re-matches #"S\d+, Ep(\d+)") last)
         ep-numbers (map #(-> % text extract-ep-number keyword) (select html [:.list_item :.image :div :div]))
         titles (map #(-> % :attrs :title) (select html [:.list_item :.image :a]))]
