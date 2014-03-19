@@ -1,4 +1,5 @@
-(ns tv-scraper.wikipedia.parser)
+(ns tv-scraper.wikipedia.parser
+  (:require [clojure.string :refer [blank?]] ))
 
 (def tokens
   {"{{"    :template-start
@@ -11,6 +12,10 @@
    "==="   :h3
    "===="  :h4
    "=====" :h5})
+(def start-end-regex #"^(.*)\-(end|start)$")
+
+(defn tag-name [token]
+  (keyword (nth (re-matches start-end-regex (name token)) 1 (name token))))
 
 (defn starts-with? [string prefix]
   (let [beginning (subs string 0 (min (count string) (count prefix)))]
@@ -67,3 +72,54 @@
       (let [[memory' text' result']
             (tokenize-step memory text result)]
         (recur memory' text' result')))))
+
+(defn is-token? [token]
+  (contains? (set (vals tokens)) token))
+
+(defn debug-print [value]
+  (do
+    (prn value)
+    value))
+
+(defn are-start-end-pair? [start end]
+  (let [regex         #(->> % name (re-matches start-end-regex))
+        start-matches (regex start)
+        end-matches   (regex end)]
+    (and
+      (-> start-matches last (= "start"))
+      (-> end-matches   last (= "end"))
+      (= (nth start-matches 1)
+         (nth end-matches   1)))))
+
+(defn is-closing? [open-tag candidate]
+  (and
+    open-tag
+    (= (tag-name open-tag) (tag-name candidate))
+    (or
+      (= open-tag candidate)
+      (are-start-end-pair? open-tag candidate))))
+
+
+(defn parse-helper [result [current & remainder :as tokens] open-tag]
+  (cond
+    ;; End condition
+    (empty? tokens)
+    [result tokens open-tag]
+
+    ;; Closing the current level
+    (and (is-token? current) (is-closing? open-tag current))
+    [result remainder open-tag]
+
+    ;; Opening a new level, then integrating the subresult
+    (is-token? current)
+    (let
+      [[subresult remainder'] (parse-helper [] remainder current)
+       tag                    (tag-name current)
+       result'                (conj result {tag {:content subresult}})]
+       (parse-helper result' remainder' open-tag))
+
+    :else
+    (parse-helper (conj result current) remainder open-tag)))
+
+(defn parse [tokens]
+  (first (parse-helper [] tokens nil)))

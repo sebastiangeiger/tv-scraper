@@ -3,7 +3,20 @@
             [tv-scraper.wikipedia-test :refer [load-wikitext]]
             [tv-scraper.wikipedia.parser :refer :all]))
 
-(deftest ^:wip test-tokenize
+(deftest ^:wip test-parse
+         (is (= (-> ["Hello" "Bye"] parse)
+                ["Hello" "Bye"]))
+         (is (= (-> "=Heading 1=" tokenize parse)
+                [{:h1 {:content ["Heading 1"]}}]))
+         (is (= (-> [:h1 "Heading 1" :h1 " Hello"] parse)
+                [{:h1 {:content ["Heading 1"]}} " Hello"]))
+         (is (= (-> "{{DISPLAYTITLE:List of ''Jericho'' episodes}}" tokenize parse)
+                [{:template {:content ["DISPLAYTITLE:List of ''Jericho'' episodes"]}}]))
+         (is (= (-> "=Heading 1= This is more text ==Heading 2== And some more" tokenize parse)
+                [{:h1 {:content ["Heading 1"]}} " This is more text " {:h2 {:content ["Heading 2"]}} " And some more"]))
+         )
+
+(deftest test-tokenize
          (is (= (tokenize "single-word")
                 ["single-word"]))
          (is (= (tokenize "{{name|args}}")
@@ -20,6 +33,10 @@
          (is (tokenize "[[File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static[[wikt:-esque|esque]] font, is accompanied by [[Morse code]] specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background.]]"))
          (is (-> "list_of_jericho_episodes" load-wikitext tokenize))
          )
+
+(deftest test-tag-name
+         (is (= (tag-name :h1) :h1))
+         (is (= (tag-name :template-start) :template)))
 
 (deftest test-conj-concat
          (is (= (conj-concat [1 2] [3 4]) [1 2 3 4]))
