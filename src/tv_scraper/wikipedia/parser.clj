@@ -2,8 +2,21 @@
   (:require [clojure.string :refer [blank?]] ))
 
 (def tokens
+  {"{{" "{{"
+   "}}" "}}"
+   "[[" "[["
+   "]]" "]]"
+   "=" "="
+   "==" "=="
+   "===" "==="
+   "====" "===="
+   "=====" "====="})
+
+(def restrictions
+  {"=" #(or (= % nil) (= % "="))})
+
+(def names
   {"{{"    :template-start
-   "|"     :pipe
    "}}"    :template-end
    "[["    :something-start
    "]]"    :something-end
@@ -12,10 +25,21 @@
    "==="   :h3
    "===="  :h4
    "=====" :h5})
+
+(def pairs
+  {"{{"    "}}"
+   "[["    "]]"
+   "="     "="
+   "=="    "=="
+   "==="   "==="
+   "===="  "===="
+   "=====" "====="})
+
 (def start-end-regex #"^(.*)\-(end|start)$")
 
 (defn tag-name [token]
-  (keyword (nth (re-matches start-end-regex (name token)) 1 (name token))))
+  (let [tag-part-name (name (get names token))]
+    (keyword (nth (re-matches start-end-regex tag-part-name) 1 tag-part-name))))
 
 (defn starts-with? [string prefix]
   (let [beginning (subs string 0 (min (count string) (count prefix)))]
@@ -30,7 +54,6 @@
 (defn none-start-with? [coll key]
   (= (count (filter #(starts-with? % key) (keys coll))) 0))
 
-;; TODO: tokens could be nicely curried, then just pass in memory and joined
 (defn ^:private substitute-tokens [memory current]
   (let [joined (str memory current)
         current (str current)]
@@ -73,8 +96,12 @@
             (tokenize-step memory text result)]
         (recur memory' text' result')))))
 
-(defn is-token? [token]
-  (contains? (set (vals tokens)) token))
+(defn is-token? [token open-tag]
+  (and
+    (contains? (set (vals tokens)) token)
+    (or
+      (nil? (get restrictions token))
+      ((get restrictions token) open-tag))))
 
 (defn debug-print [value]
   (do
@@ -82,36 +109,28 @@
     value))
 
 (defn are-start-end-pair? [start end]
-  (let [regex         #(->> % name (re-matches start-end-regex))
-        start-matches (regex start)
-        end-matches   (regex end)]
-    (and
-      (-> start-matches last (= "start"))
-      (-> end-matches   last (= "end"))
-      (= (nth start-matches 1)
-         (nth end-matches   1)))))
+  (= (get pairs start) end))
 
 (defn is-closing? [open-tag candidate]
   (and
     open-tag
-    (= (tag-name open-tag) (tag-name candidate))
-    (or
-      (= open-tag candidate)
-      (are-start-end-pair? open-tag candidate))))
-
+    (are-start-end-pair? open-tag candidate)))
 
 (defn parse-helper [result [current & remainder :as tokens] open-tag]
   (cond
     ;; End condition
     (empty? tokens)
-    [result tokens open-tag]
+    (if (nil? open-tag)
+      [result tokens open-tag]
+      (throw (Exception. (str "Open tag not closed: " open-tag)))
+      )
 
     ;; Closing the current level
-    (and (is-token? current) (is-closing? open-tag current))
+    (and (is-token? current open-tag) (is-closing? open-tag current))
     [result remainder open-tag]
 
     ;; Opening a new level, then integrating the subresult
-    (is-token? current)
+    (is-token? current open-tag)
     (let
       [[subresult remainder'] (parse-helper [] remainder current)
        tag                    (tag-name current)
