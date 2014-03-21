@@ -5,9 +5,7 @@
 
 (def jericho-image-file "[[File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static[[wikt:-esque|esque]] font, is accompanied by [[Morse code]] specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background.]]")
 
-(deftest ^:wip test-parse
-           (is (= (-> ["Hello" "Bye"] parse)
-                  ["Hello" "Bye"]))
+(deftest test-parse
            (is (= (-> "=Heading 1=" tokenize parse)
                   [{:h1 {:content ["Heading 1"]}}]))
            (is (= (-> "=Heading 1= Hello" tokenize parse)
@@ -20,9 +18,7 @@
                   [{:something {:content ["File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static"
                                           {:something {:content ["wikt:-esque|esque"]}}
                                           " font, is accompanied by " {:something {:content ["Morse code"]}}
-                                          " specific to each episode.|alt"
-                                          "="
-                                          "The word \"Jericho\" in a gray/black font that looks like static on a black background."]}}]))
+                                          " specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background."]}}]))
            ;; (is (=
            ;;       (prn (nth (-> "list_of_jericho_episodes" load-wikitext tokenize parse) 2))
                  )
@@ -43,6 +39,24 @@
          ;; Just checking these don't throw an error
          (is (tokenize jericho-image-file))
          (is (-> "list_of_jericho_episodes" load-wikitext tokenize))
+         )
+
+(deftest ^:wip test-join-consecutive-strings
+         (is (= (join-consecutive-strings [])
+                []))
+         (is (= (join-consecutive-strings ["single"])
+                ["single"]))
+         (is (= (join-consecutive-strings ["join " "these"])
+                ["join these"]))
+         (is (= (join-consecutive-strings ["join " "these " "together"])
+                ["join these together"]))
+         (is (= (join-consecutive-strings [{:some ["map"]} {:some ["more"]} {:something ["else"]}])
+                [{:some ["map"]} {:some ["more"]} {:something ["else"]}]))
+         (is (= (join-consecutive-strings ["Join " "this" {:h1 ["not this"]}])
+                ["Join this" {:h1 ["not this"]}]))
+         (is (= (join-consecutive-strings
+                  ["Join " "this" {:h1 ["and " "this " "as well"] :deeper {:nesting {:is ["supported" " as " "well"]}}}])
+                ["Join this" {:h1 ["and this as well"] :deeper {:nesting {:is ["supported as well"]}}}]))
          )
 
 (deftest test-is-token?

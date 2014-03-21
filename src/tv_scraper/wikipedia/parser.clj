@@ -1,5 +1,5 @@
 (ns tv-scraper.wikipedia.parser
-  (:require [clojure.string :refer [blank?]] ))
+  (:require [clojure.string :refer [blank? join] :rename {join str-join}] ))
 
 (def tokens
   {"{{" "{{"
@@ -140,5 +140,27 @@
     :else
     (parse-helper (conj result current) remainder open-tag)))
 
+(defn join-consecutive-strings [array]
+
+  (defn integrate [a b]
+    (let [mid (last a)
+          dle (first b)]
+      (if (and (string? mid) (string? dle))
+        (concat (butlast a) [(str-join [mid dle])] (rest b))
+        (concat a b))))
+  (defn treat-map [m f]
+    (into {} (for [[k v] m] [k (f v)])))
+
+  (cond
+    ;; Divide and conquer
+    (> (count array) 1)
+    (reduce integrate (map join-consecutive-strings (split-at (/ (count array) 2) array)))
+    (and (= (count array) 1) (map? array))
+    (treat-map array join-consecutive-strings)
+    (and (= (count array) 1) (map? (first array)))
+    [(treat-map (first array) join-consecutive-strings)]
+    :else
+    array))
+
 (defn parse [tokens]
-  (first (parse-helper [] tokens nil)))
+  (join-consecutive-strings (first (parse-helper [] tokens nil))))
