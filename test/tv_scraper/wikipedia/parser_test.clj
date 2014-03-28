@@ -3,9 +3,9 @@
             [tv-scraper.wikipedia-test :refer [load-wikitext]]
             [tv-scraper.wikipedia.parser :refer :all]))
 
-(def jericho-image-file "[[File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static[[wikt:-esque|esque]] font, is accompanied by [[Morse code]] specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background.]]")
+(def ref-problem ":3.{{Note|reference_name_C}} In the original ending, Hawkins acts as a diversion at the airport to buy Jake more time. A third season would have focused on rescuing Hawkins and on \"John Smith\".<ref name=\"TV Guide Series Finale\">{{cite web | author= Matt Mitovich| title=The Jericho Finale You Didn't See: An Inside Look | url=http://www.tvguide.com/news/jericho-finale-didnt-10863.aspx | date=March 28, 2008| work=[[TV Guide (magazine)|TV Guide]] | accessdate=March 30, 2009}}</ref>")
 
-(deftest test-parse
+(deftest ^:wip test-parse
            (is (= (-> "=Heading 1=" tokenize parse)
                   [{:h1 {:content ["Heading 1"]}}]))
            (is (= (-> "=Heading 1= Hello" tokenize parse)
@@ -14,13 +14,13 @@
                   [{:template {:content ["DISPLAYTITLE:List of ''Jericho'' episodes"]}}]))
            (is (= (-> "=Heading 1= This is more text ==Heading 2== And some more" tokenize parse)
                   [{:h1 {:content ["Heading 1"]}} " This is more text " {:h2 {:content ["Heading 2"]}} " And some more"]))
-           (is (= (-> jericho-image-file tokenize parse)
-                  [{:something {:content ["File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static"
+           (is (= (nth (-> "list_of_jericho_episodes" load-wikitext tokenize parse) 2)
+                  {:something {:content ["File:Jericho.tvseries.jpg|275px|thumb|The ''Jericho'' intertitle, written in static"
                                           {:something {:content ["wikt:-esque|esque"]}}
                                           " font, is accompanied by " {:something {:content ["Morse code"]}}
-                                          " specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background."]}}]))
-           ;; (is (=
-           ;;       (prn (nth (-> "list_of_jericho_episodes" load-wikitext tokenize parse) 2))
+                                          " specific to each episode.|alt=The word \"Jericho\" in a gray/black font that looks like static on a black background."]}}))
+           (is (= (->> "jericho_season_1_table" load-wikitext tokenize parse first :table :content) []))
+           ;; (is (= (->> ref-problem tokenize parse) []))
                  )
 
 (deftest test-tokenize
@@ -37,11 +37,10 @@
          (is (= (tokenize "==Headline==")
                 ["==" "Headline" "=="]))
          ;; Just checking these don't throw an error
-         (is (tokenize jericho-image-file))
-         (is (-> "list_of_jericho_episodes" load-wikitext tokenize))
+         (is (->> "list_of_jericho_episodes" load-wikitext tokenize))
          )
 
-(deftest ^:wip test-join-consecutive-strings
+(deftest test-join-consecutive-strings
          (is (= (join-consecutive-strings [])
                 []))
          (is (= (join-consecutive-strings ["single"])
