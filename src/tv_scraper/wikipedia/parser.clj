@@ -21,8 +21,8 @@
 (def names
   {"{{"    :template-start
    "}}"    :template-end
-   "[["    :something-start
-   "]]"    :something-end
+   "[["    :link-start
+   "]]"    :link-end
    "{|"    :table-start
    "|}"    :table-end
    "="     :h1
