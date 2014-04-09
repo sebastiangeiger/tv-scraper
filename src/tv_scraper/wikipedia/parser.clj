@@ -1,5 +1,6 @@
 (ns tv-scraper.wikipedia.parser
-  (:require [clojure.string :refer [blank? join] :rename {join str-join}] ))
+  (:require [clojure.string :refer [blank? join] :rename {join str-join}] )
+  )
 
 (def tokens
   {"{{" "{{"
@@ -176,4 +177,9 @@
     array))
 
 (defn parse [tokens]
-  (join-consecutive-strings (first (parse-helper [] tokens nil))))
+  (->
+    (parse-helper [] tokens nil)
+    first
+    join-consecutive-strings
+    refine-templates
+    ))
