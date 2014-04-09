@@ -176,6 +176,38 @@
     :else
     array))
 
+(defn split-up [regex string]
+  {:post (= (clojure.string/join %) string)}
+
+  "Splits a string on a regular expression, then returns the split up string
+  including the matched regular expression.
+  Joining the result of this operation yields the original input string.
+
+  Example: (split-up #\"\\d+\" \"12ab34cd\") => [\"12\" \"ab\" \"34\" \"cd\"]
+           (split-up #\"\\d+\" \"ab34cd56\") => [\"\" \"ab\" \"34\" \"cd\" \"56\"]"
+
+  (defn helper [regex string]
+    {:post (even? (count %))}
+    (loop [result [ "" ]
+           string string]
+      (let [matcher (re-matcher regex string)]
+        (if (.find matcher)
+          (let [current   (.group matcher)
+                before    (subs string 0 (.start matcher))
+                remainder (subs string (.end matcher))
+                result*   (concat result [before current])]
+            (recur result* remainder))
+          (concat result [string])))))
+  (defn trim-beginning [array]
+    (if (= (take 2 array) ["" ""])
+      (drop 2 array)
+      array))
+  (defn trim-end [array]
+    (if (= (last array) "")
+      (butlast array)
+      array))
+
+  (-> (helper regex string) trim-beginning trim-end))
 (defn parse [tokens]
   (->
     (parse-helper [] tokens nil)

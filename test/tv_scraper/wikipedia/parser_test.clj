@@ -5,7 +5,7 @@
 
 (def ref-problem ":3.{{Note|reference_name_C}} In the original ending, Hawkins acts as a diversion at the airport to buy Jake more time. A third season would have focused on rescuing Hawkins and on \"John Smith\".<ref name=\"TV Guide Series Finale\">{{cite web | author= Matt Mitovich| title=The Jericho Finale You Didn't See: An Inside Look | url=http://www.tvguide.com/news/jericho-finale-didnt-10863.aspx | date=March 28, 2008| work=[[TV Guide (magazine)|TV Guide]] | accessdate=March 30, 2009}}</ref>")
 
-(deftest ^:wip test-parse
+(deftest test-parse
            (is (= (-> "=Heading 1=" tokenize parse)
                   [{:h1 {:content ["Heading 1"]}}]))
            (is (= (-> "=Heading 1= Hello" tokenize parse)
@@ -56,6 +56,13 @@
          (is (= (join-consecutive-strings
                   ["Join " "this" {:h1 ["and " "this " "as well"] :deeper {:nesting {:is ["supported" " as " "well"]}}}])
                 ["Join this" {:h1 ["and this as well"] :deeper {:nesting {:is ["supported as well"]}}}]))
+         )
+(deftest test-split-up
+         (is (= (split-up #"\d+" "1234")          ["1234"]))
+         (is (= (split-up #"\d+" "test")          ["" "test"]))
+         (is (= (split-up #"\d+" "1234uvw567cde") ["1234" "uvw" "567" "cde"]))
+         (is (= (split-up #"\d+" "1234uvw567")    ["1234" "uvw" "567"]))
+         (is (= (split-up #"\d+" "abc1234uvw")    ["" "abc" "1234" "uvw"]))
          )
 
 (deftest test-is-token?
