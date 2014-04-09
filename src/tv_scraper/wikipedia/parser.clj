@@ -146,6 +146,14 @@
     (parse-helper (conj result current) remainder open-tag)))
 
 (defn join-consecutive-strings [array]
+  "Steps through the entire tree and joins consecutive strings whenever it
+  encounters them in an array.
+  The fundamental structure of the tree remains intact, only arrays are
+  changed and then inserted at their old position.
+
+  Example: (replace quotes for valid syntax)
+  (join-consecutive-strings [{:this {:is ['a ' 'nested ' 'string']}} 'this ' 'not'])
+  #=> [{:this {:is ['a nested string']}} 'this not']"
 
   (defn integrate [a b]
     (let [mid (last a)
