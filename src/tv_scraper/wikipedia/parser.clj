@@ -1,5 +1,6 @@
 (ns tv-scraper.wikipedia.parser
   (:require [clojure.string :refer [blank? join] :rename {join str-join}] )
+  (:require [clojure.set :refer [rename-keys]]  )
   )
 
 (def tokens
@@ -208,6 +209,31 @@
       array))
 
   (-> (helper regex string) trim-beginning trim-end))
+
+(defn refine-templates [tree]
+  (let [key-regex #"\|(\w+)="]
+    (defn pull-out-attributes [tree]
+      {:pre [(= (keys tree) [:content])
+             (= 1 (-> tree :content count))]}
+      (->> tree
+        :content
+        first
+        (split-up key-regex)))
+
+    (defn adapt-keys [tree]
+      {:pre [(= (first (keys tree)) "")]}
+      (let [old-keys    (keys tree)
+            conversion #(->> % (re-matches key-regex) last keyword)
+            replacement (zipmap old-keys (map conversion old-keys))]
+      (rename-keys tree (merge replacement {"" :content}))))
+
+    (if (and (map? tree) (tree :content))
+      (->> tree
+        pull-out-attributes
+        (apply hash-map)
+        adapt-keys)
+      tree)))
+
 (defn parse [tokens]
   (->
     (parse-helper [] tokens nil)

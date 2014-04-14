@@ -65,6 +65,11 @@
          (is (= (split-up #"\d+" "abc1234uvw")    ["" "abc" "1234" "uvw"]))
          )
 
+(deftest test-refine-templates
+         (is (= (refine-templates
+                  {:content ["Test |alt=Something"]})
+                {:content "Test " :alt "Something"})))
+
 (deftest test-is-token?
          (is (is-token? "=" nil))
          (is (not (is-token? "=" "[[")))
